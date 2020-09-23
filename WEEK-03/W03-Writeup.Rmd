@@ -7,19 +7,16 @@ output:
       citation_package: natbib
       latex_engine: pdflatex
       template: ./../latex-templates/homework.tex
+      fig_caption: true
+      number_sections: true
     html_document:
       df_print: paged
 course: "STATS 419 Survey of Multivariate Analysis"
-course-short: STATS 419
+course-short: STATS419
 instructor: Monte J. Shaffer
 email: "chirs24m@wsu.edu"
-fig_caption: true
-number_sections: true
 ---
 
-This is an [R Markdown](http://rmarkdown.rstudio.com) Notebook. When you execute code within the notebook, the results appear beneath the code. 
-
-Try executing this chunk by clicking the *Run* button within the chunk or by placing your cursor inside it and pressing *Cmd+Shift+Enter*. 
 
 ```{r,mychunk-1,message=FALSE}
 library(devtools); # devtools is required for function source_url() to work

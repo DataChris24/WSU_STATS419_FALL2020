@@ -1,27 +1,238 @@
 ---
-title: 'R Notebook Sandbox: Assignment "Datasets" (10 points)'
+title: 'Week 03 Assignment 02_datasets'
+author: 'Christopher Mims'
+date: "'r format(Sys.time(), '%d %B %Y')'"
 output: 
   html_document:
     df_print: paged
-fig_caption: true
-number_sections: true
+    toc: true
+    toc-float: true
+    fig_caption: true
+    number_sections: true
+my-var: "Christopher"
 ---
 
-This is an [R Markdown](http://rmarkdown.rstudio.com) Notebook. When you execute code within the notebook, the results appear beneath the code. 
 
-Try executing this chunk by clicking the *Run* button within the chunk or by placing your cursor inside it and pressing *Cmd+Shift+Enter*. 
-
-```{r,mychunk-local,message=FALSE}
+```{r, mychunk-common-include, message = FALSE}
 library(devtools); 
-my.source = 'local'
+my.source = 'local';
 local.path = "/Users/christophermims/_git_/WSU_STATS419_FALL2020/";
 source( paste0(local.path,"functions/libraries.R"), local=T );
-source( paste0(local.path,"functions/functions-imdb.R"), local=T );
+
 ```
 
-Add a new chunk by clicking the *Insert Chunk* button on the toolbar or by pressing *Cmd+Option+I*.
+# Matrix
 
-When you save the notebook, an HTML file containing the code and output will be saved alongside it (click the *Preview* button or press *Cmd+Shift+K* to preview the HTML file). 
+Create the "rotate matrix" functions as described in lectures.  Apply to the example "myMatrix".
 
-The preview shows you a rendered HTML copy of the contents of the editor. Consequently, unlike *Knit*, *Preview* does not run any R code chunks. Instead, the output of the chunk when it was last run in the editor is displayed.
+```{r, mychunk-matrix-include}
+local.path = "/Users/christophermims/_git_/WSU_STATS419_FALL2020/";
+source( paste0(local.path,"functions/functions-matrix.R"), local=T );
 
+myMatrix = matrix ( c (
+                      1, 0, 2,
+                      0, 3, 0,
+                      4, 0, 5
+                      ), nrow = 3, byrow = T);
+myMatrix
+
+```
+
+## Transpose Matrix
+```{r, mychunk-matrix-transpose}
+
+transposeMatrix = function(matrix) {
+  t(matrix);
+}
+
+transMatrix = transposeMatrix(myMatrix);
+transMatrix
+```
+
+## Rotate Matrix
+```{r, mychunk-matrix-rotate}
+
+rotateMatrix = function(matrix, clockwise = T) {
+  if (clockwise) {
+    t(apply(matrix, 2, rev));
+  }
+  else {
+    apply(t(matrix), 2, rev);
+  }  
+}
+
+rotMatrix = rotateMatrix(myMatrix);
+rotMatrix
+```
+
+## Rotate Matrix 90 Degrees
+```{r, mychunk-matrix-rotate90}
+
+rotateMatrix90= function(matrix, clockwise = T) {
+  rotateMatrix(matrix, clockwise);
+}
+
+rot90Matrix = rotateMatrix90(myMatrix)
+rot90Matrix
+```
+
+## Rotate Matrix 180 Degrees
+```{r, mychunk-matrix-rotate180}
+
+rotateMatrix180= function(matrix, clockwise = T) {
+  rotateMatrix(
+    rotateMatrix(
+      matrix));
+}
+
+rot180Matrix = rotateMatrix180(myMatrix)
+rot180Matrix
+```
+
+## Rotate Matrix 270 Degrees
+```{r, mychunk-matrix-rotate270}
+
+rotateMatrix270= function(matrix, clockwise = T) {
+  rotateMatrix(
+    rotateMatrix(
+      rotateMatrix(
+        matrix)));
+}
+
+rot270Matrix = rotateMatrix270(myMatrix)
+rot270Matrix
+```
+
+## Rotate Matrix by Given Angle
+```{r, mychunk-matrix-rotate-by-angle}
+
+rotateMatrixAngle= function(matrix, angle = 0, clockwise = T) {
+  rem = angle %% 90;
+  if (rem != 0) {
+    print("Not a valid angle!");
+  }
+  if (angle < 0) {
+    # This will reverse the direction of rotation (from clockwise to counterclockwise)
+    clockwise = if(clockwise) FALSE else TRUE;
+    angle = abs(angle);
+  }
+  div = angle %% 360;
+  switch(as.character(div),
+         "90" = rotateMatrix90(matrix, clockwise),
+         "180" = rotateMatrix180(matrix, clockwise),
+         "270" = rotateMatrix270(matrix, clockwise),
+         matrix
+         );
+}
+
+rotAngleMatrix = rotateMatrixAngle(myMatrix, 90)
+rotAngleMatrix
+rotAngleMatrix = rotateMatrixAngle(myMatrix, 180)
+rotAngleMatrix
+rotAngleMatrix = rotateMatrixAngle(myMatrix, 270)
+rotAngleMatrix
+rotAngleMatrix = rotateMatrixAngle(myMatrix, 220)
+rotAngleMatrix
+rotAngleMatrix = rotateMatrixAngle(myMatrix, -90)
+rotAngleMatrix
+```
+
+#IRIS
+
+Recreate the graphic for the IRIS Data Set using R.  Same titles, same scales, same colors.  See: https://en.wikipedia.org/wiki/Iris_flower_data_set#/media/File:Iris_dataset_scatterplot.svg
+
+```{r, mychunk-iris-demo}
+
+plot(~ Sepal.Length + Sepal.Width + Petal.Length + Petal.Width,
+	bg=c("red", "green3", "blue")[as.integer(Species)],
+	pch=21,
+	main="Iris Data (red=setosa,green=versicolor,blue=virginica)",
+	data=iris)
+
+```
+
+
+Sentences: [Write 2-3 sentences concisely defining the IRIS Data Set.  Maybe search KAGGLE for a nice template.  Be certain the final writeup are your own sentences (make certain you modify what you find, make it your own, but also cite where you got your ideas from).  NOTE:  Watch the video, Figure 8 has a +5 EASTER EGG.]
+
+The Iris flower data set is a multivariate data set introduced in 1936 by Ronald Fisher, a statistician and biologist, in his paper "The use of multiple measurements in Taxonomic problems." It consists of four meausrements (sepal length, sepal width, petal length, and petal width) of three species of Iris flower (Iris setosa, Iris versicolor, and Iris virginica). This data set has become the test case for many statistical classification techniques in machine learning.
+
+*Need to cite wikipedia here*
+
+# Personality
+
+Import "personality-raw.txt" into R.  
+
+```{r, mychunk-personality, message = FALSE}
+local.path = "/Users/christophermims/_git_/WSU_STATS419_FALL2020/";
+source( paste0(local.path,"functions/functions-dataframe.R"), local=T );
+df.personality.raw = read.csv("datasets/personality-raw.txt", sep="|", header=T)
+```
+
+## Cleanup RAW
+
+Create two new columns from the current column "date_test":  year and week. Stack Overflow may help:  https://stackoverflow.com/questions/22439540/how-to-get-week-numbers-from-dates ... Sort the new data frame by YEAR, WEEK so the newest tests are first ... The newest tests (e.g., 2020 or 2019) are at the top of the data frame.  Then remove duplicates using the unique function based on the column "md5_email".  Save the data frame in the same "pipe-delimited format" ( | is a pipe ) with the headers.  You will keep the new data frame as "personality-clean.txt" for future work (you will not upload it 
+
+```{r, mychunk-personality-ceanup-delete-columns, message = FALSE}
+removeColumnsFromDF = function(dataFrame, deleteCol) {
+  for(deleteCol in deleteCol) {
+    dataFrame[deleteCol] = NULL;
+  }
+  dataFrame;
+}
+myCol = "V00";
+df.personality.clean = removeColumnsFromDF(df.personality.raw, myCol);
+df.personality.clean = separate(df.personality.clean, date_test, c("YEAR", "WEEK"), sep = "\\b\\s\\b", remove = TRUE);
+df.personality.clean$WEEK = df.personality.clean$YEAR;
+df.personality.clean$YEAR = convertDateStringToFormat(df.personality.clean$YEAR);
+
+
+
+```
+
+
+# Will vs Denzel
+```{r, mychunk-imdb-include, message = FALSE}
+local.path = "/Users/christophermims/_git_/WSU_STATS419_FALL2020/";
+source( paste0(local.path,"functions/functions-imdb.R"), local=T );
+
+```
+
+## Will Smith
+```{r, ychunk-will, fig.cap = c("Will Smith scatterplot: IMDB(2020)", "Will Smith boxplot raw millions: IMDB(2020)")}
+nmid = "nm0000226";
+  will = grabFilmsForPerson(nmid);
+  plot(will$movies.50[,c(1,6,7:10)]);
+    boxplot(will$movies.50$millions);
+    widx = which.max(will$movies.50$millions);
+  will$movies.50[widx,];
+    summary(will$movies.50$year);
+
+```
+
+## Denzel Washington
+```{r,mychunk-denzel}
+nmid = "nm0000243";
+  denzel = grabFilmsForPerson(nmid);
+  plot(denzel$movies.50[,c(1,6,7:10)]);
+    boxplot(denzel$movies.50$millions);
+    widx = which.max(denzel$movies.50$millions);
+  denzel$movies.50[widx,];
+    summary(denzel$movies.50$year);
+
+```
+
+## BoxPlot of Top-50 movies using Raw Dollars
+```{r,mychunk-boxplot-raw}
+par(mfrow=c(1,2));
+  boxplot(will$movies.50$millions, main=will$name, ylim=c(0,360), ylab="Raw Millions");
+  boxplot(denzel$movies.50$millions, main=denzel$name, ylim=c(0, 360), ylab="RawMillions");
+
+  par(mfrow=c(1,1));
+
+```
+
+## Side-by-Side Comparisons
+
+### Adjusted Dollars (2000)
+### Total Votes (Divide by x,xxx)
+### Average Ratings

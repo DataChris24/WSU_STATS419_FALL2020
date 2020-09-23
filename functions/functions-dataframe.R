@@ -58,7 +58,7 @@ removeColumnsFromDataFrame = function(df,mycols)
 #' 
 #' Ymd = convertDateStringToFormat(date.strings,"%Y-%m-%d","%m/%d/%Y %H:%M",numeric=F);
 #' 
-convertDateStringToFormat = function (strvec,format.out="%Y",format.in="%Y-%m-%d %H:%M:%S",numeric=TRUE)
+convertDateStringToFormat = function (strvec,format.out="%Y",format.in="%Y-%m-%d",numeric=TRUE)
 	{
 	p.obj = strptime(strvec, format=format.in);
 	o.obj = strftime(p.obj, format=format.out);
@@ -66,7 +66,12 @@ convertDateStringToFormat = function (strvec,format.out="%Y",format.in="%Y-%m-%d
 	if(numeric) { as.numeric(o.obj); } else { o.obj; }
 	}
 
-
+convertDateStringToWeek = function (strvec, format.out = "%V", format.in = "%Y-%m-%d", numeric = TRUE) {
+  p.obj = strptime(strvec, format = format.in);
+  o.obj = strftime(p.obj, format = format.out);
+  
+  if(numeric) {as.numeric(o.obj);} else {o.obj;}
+}
 
 #' removeDuplicatesFromDataFrame
 #'
