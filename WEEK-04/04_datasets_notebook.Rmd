@@ -11,6 +11,9 @@ output:
 my-var: "monte"  # https://bookdown.org/yihui/rmarkdown/html-document.html
 ---
 
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = TRUE)
+```
 
 
 ```{r,mychunk-common-include,message=FALSE}
@@ -19,7 +22,7 @@ my.source = 'github';
 github.path = "https://raw.githubusercontent.com/DataChris24/WSU_STATS419_FALL2020/";
 source_url( paste0(github.path,"master/functions/libraries.R") );
 
-install_github("MonteShaffer/humanVerseWSU/humanVerseWSU");
+# install_github("MonteShaffer/humanVerseWSU/humanVerseWSU");
 library(humanVerseWSU); # if your functions have the same name as the humanVerseWSU functions, there may be a collision ...  order of sourcing/library (which comes first, second, third, etc.) matters.
 ```
 
@@ -29,7 +32,7 @@ library(humanVerseWSU); # if your functions have the same name as the humanVerse
 Create the "rotate matrix" functions as described in lectures.  Apply to the example "myMatrix".
 
 ```{r,mychunk-matrix-include,message=FALSE}
-source( paste0(local.path,"functions/functions-matrix.R"), local=T );
+source_url( paste0(github.path,"master/functions/functions-matrix.R") );
 
 
 myMatrix = matrix ( c (
@@ -59,7 +62,7 @@ rotateMatrix270(myMatrix);
 
 
 # IRIS
-Recreate the graphic for the IRIS Data Set using R.  Same titles, same scales, same colors.  See: https://en.wikipedia.org/wiki/Iris_flower_data_set#/media/File:Iris_dataset_scatterplot.svg
+Recreate the graphic for the IRIS Data Set using R.  Same titles, same scales, same colors.  See: \url{https://en.wikipedia.org/wiki/Iris_flower_data_set#/media/File:Iris_dataset_scatterplot.svg}
 
 ```{r,mychunk-iris-demo}
 
@@ -107,17 +110,17 @@ plot( iris[,-5],
 
 
 
-library(ggplot2);
-ggplot( iris, 
-        aes(x=Sepal.Length, 
-        color=Species)
-        ) 
-        + geom_density( )
-        + ggtitle("Main title")
-        
-
-
-ggplot(data = iris, aes( x = Sepal.Length, y = Sepal.Width,shape = Species, color = Species)) + geom_point()
+# library(ggplot2);
+# ggplot( iris, 
+#         aes(x=Sepal.Length, 
+#         color=Species)
+#         ) 
+#         + geom_density( )
+#         + ggtitle("Main title")
+#         
+# 
+# 
+# ggplot(data = iris, aes( x = Sepal.Length, y = Sepal.Width,shape = Species, color = Species)) + geom_point()
 
 # concept of scatterplot is different in ggplot than in plot
 # this creates confusion, increases challenges to work effectively
@@ -278,7 +281,7 @@ Import "personality-raw.txt" into R.  Remove the V00 column.  Create two new col
 
 # working directory is good-to-go
 
-myFile = paste0(local.path,"datasets/personality/personality-raw.txt");
+myFile = paste0(github.path,"master/datasets/personality/personality-raw.txt");
 
 myData = read.csv(myFile,header=T,sep="|");
 

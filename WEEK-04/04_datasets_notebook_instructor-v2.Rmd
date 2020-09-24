@@ -553,7 +553,7 @@ whichMax( c(87, presidents[1:30], 87) );
 ## a function can also be referenced using class::method notation
 
 base::which.max( c(87, presidents[1:30], 87) );
-humanVerseWUS::whichMax( c(87, presidents[1:30], 87) );
+# humanVerseWUS::whichMax( c(87, presidents[1:30], 87) );
 
 # typos ... 
 humanVerseWSU::whichMax( c(87, presidents[1:30], 87) );
@@ -641,6 +641,9 @@ z.vecBound = standardizeFromOneRangeToAnother(vec, c(0,1) );  # like z-scores, s
 
 rownames(vdf) = myRows;
 
+tvdf = as.data.frame( t(vdf) ); # why transpose it?
+
+graphics::plot( tvdf );
 ```
 
 
@@ -780,7 +783,7 @@ par(mfrow=c(1,2));
 ## Side-by-Side Comparisons
 Build side-by-side box plots on several of the variables (including #6) to compare the two movie stars.  After each box plot, write 2+ sentence describing what you are seeing, and what conclusions you can logically make.  You will need to review what the box plot is showing with the box portion, the divider in the box, and the whiskers.
 
-```{r,mychunk-matrix-demo}
+```{r,mychunk-matrix-demo1}
 
 humanVerseWSU::transposeMatrix(myMatrix);
 rotateMatrix90(myMatrix);  # clockwise ... 
