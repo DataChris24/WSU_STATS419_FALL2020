@@ -26,9 +26,85 @@ source_url( paste0(github.path,"master/functions/libraries.R") );
 source_url( paste0(github.path,"master/functions/functions-imdb.R") );
 ```
 
-Add a new chunk by clicking the *Insert Chunk* button on the toolbar or by pressing *Cmd+Option+I*.
+# Matrix
 
-When you save the notebook, an HTML file containing the code and output will be saved alongside it (click the *Preview* button or press *Cmd+Shift+K* to preview the HTML file). 
+Create the "rotate matrix" functions as described in lectures.  Apply to the example "myMatrix".
 
-The preview shows you a rendered HTML copy of the contents of the editor. Consequently, unlike *Knit*, *Preview* does not run any R code chunks. Instead, the output of the chunk when it was last run in the editor is displayed.
+```{r, mychunk-matrix-include}
+
+source_url( paste0(github.path,"master/functions/functions-matrix.R") );
+
+myMatrix = matrix ( c (
+                      1, 0, 2,
+                      0, 3, 0,
+                      4, 0, 5
+                      ), nrow = 3, byrow = T);
+myMatrix
+```
+
+## Transpose Matrix
+```{r, mychunk-matrix-transpose}
+
+transposeMatrix = function(matrix) {
+  t(matrix);
+}
+
+transMatrix = transposeMatrix(myMatrix);
+transMatrix
+```
+
+## Rotate Matrix
+```{r, mychunk-matrix-rotate}
+
+rotateMatrix = function(matrix, clockwise = T) {
+  if (clockwise) {
+    t(apply(matrix, 2, rev));
+  }
+  else {
+    apply(t(matrix), 2, rev);
+  }  
+}
+
+rotMatrix = rotateMatrix(myMatrix);
+rotMatrix
+```
+
+## Rotate Matrix 90 Degrees
+```{r, mychunk-matrix-rotate90}
+
+rotateMatrix90= function(matrix, clockwise = T) {
+  rotateMatrix(matrix, clockwise);
+}
+
+rot90Matrix = rotateMatrix90(myMatrix)
+rot90Matrix
+```
+
+## Rotate Matrix 180 Degrees
+```{r, mychunk-matrix-rotate180}
+
+rotateMatrix180= function(matrix, clockwise = T) {
+  rotateMatrix(
+    rotateMatrix(
+      matrix));
+}
+
+rot180Matrix = rotateMatrix180(myMatrix)
+rot180Matrix
+```
+
+## Rotate Matrix 270 Degrees
+```{r, mychunk-matrix-rotate270}
+
+rotateMatrix270= function(matrix, clockwise = T) {
+  rotateMatrix(
+    rotateMatrix(
+      rotateMatrix(
+        matrix)));
+}
+
+rot270Matrix = rotateMatrix270(myMatrix)
+rot270Matrix
+```
+
 
