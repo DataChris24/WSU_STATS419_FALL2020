@@ -13,15 +13,15 @@ my-var: "monte"  # https://bookdown.org/yihui/rmarkdown/html-document.html
 
 ```{r, chunk-get-keys}
 
-path.measure = "C:/Users/Alexander Nevsky/Dropbox/WSU-419/Fall 2020/__student_access__/project_01_measure";  
+path.measure = "/Users/christophermims/Documents/WSU/Fall\ 2020/STATS\ 419";
   # change this to wherever measure.xls lives for you...  
   # YOU SHOULD USE MINE IN THE DROPBOX AS THE EXAMPLE...
   # BELOW, we will import yours ...
 
 library(readxl);
 
-covariates = read_excel(paste0(path.measure,"/","measure.xlsx"), sheet="covariates");
-panel = read_excel(paste0(path.measure,"/","measure.xlsx"), sheet="panel");
+covariates = read_excel(paste0(path.measure,"/","measure_mims_c.xlsx"), sheet="covariates");
+panel = read_excel(paste0(path.measure,"/","measure_mims_c.xlsx"), sheet="panel");
 
 # these are currently in "tibble form"
 
@@ -52,14 +52,14 @@ Using the sample file provided, we have all the known keys.  Now, we will use th
 
 ```{r, chunk-get-your-data}
 
-path.your.measure.file = "C:/Users/Alexander Nevsky/Dropbox/WSU-419/Fall 2020/__student_access__/project_01_measure";  
+path.your.measure.file = "/Users/christophermims/Documents/WSU/Fall\ 2020/STATS\ 419";  
   # change this to wherever measure.xls lives for you...  
   # YOU SHOULD USE MINE IN THE DROPBOX AS THE EXAMPLE...
   # BELOW, we will import yours ...
 
 
-covariates = read_excel(paste0(path.measure,"/","measure.xlsx"), sheet="covariates");
-panel = read_excel(paste0(path.measure,"/","measure.xlsx"), sheet="panel");
+covariates = read_excel(paste0(path.your.measure.file,"/","measure_mims_c.xlsx"), sheet="covariates");
+panel = read_excel(paste0(path.your.measure.file,"/","measure_mims_c.xlsx"), sheet="panel");
 
 # these are currently in "tibble form"
 
@@ -71,10 +71,10 @@ n.cov = dim(covariates)[1];
 for(i in 1:n.cov)
   {
   covariates.row = covariates[i,];
-  
+
   final.row = as.data.frame( t(rep("NA",37)) ); 
   colnames(final.row) = tabularized.cols;
-  
+
   final.row$`data_collector` = collector = covariates.row$`data_collector`;
   final.row$`person_id` = person = covariates.row$`person_id`;
   final.row[1,27:37] = covariates.row[3:13]; 
@@ -105,8 +105,9 @@ str(tabularized.df);
 
 # save as a TXT file, pipe-delimited using your data_collector id
 
-collector = "04343803d489fe8ee2c5f6ab97a101e9";
-outfile = paste0(path.measure,"/","measure","-",collector,".txt");
+collector = "789951a2bbfbf299b0822cc8452f236f";
+path.git = "/User/christophermims/_git_/WSU_STATS419_FALL2020/WEEK-05/datasets"
+outfile = paste0(path.git,"/","measure","-",collector,".txt");
 
 utils::write.table( tabularized.df , file=outfile, quote=FALSE, col.names=TRUE, row.names=FALSE, sep="|");
 
