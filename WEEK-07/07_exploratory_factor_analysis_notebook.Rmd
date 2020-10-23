@@ -1,0 +1,331 @@
+---
+title: "Playing with Exploratory Factor Anaysis (EFA)"
+output:
+  html_document:
+    df_print: paged
+    toc: true
+    toc_float: true
+    toc_depth: 4
+    fig_caption: true
+    number_sections: true
+---
+
+#Exploratory Factor Analysis (EFA)
+
+```{r, efa-setup, message=FALSE}
+packageVersion("humanVerseWSU");
+```
+
+```{r, efa-setup2, message=FALSE}
+library(humanVerseWSU);
+
+personality.raw = readRDS( system.file("extdata", "personality-raw.rds", package="humanVerseWSU") );
+
+cleanupPersonalityDataFrame = function(df)
+  {
+  df = removeColumnsFromDataFrame(personality.raw, "V00");
+  dim(df);  # 838
+  
+  
+  ywd.cols = c("year","week","day");
+  ywd = convertDateStringToFormat( df$date_test,
+                                    c("%Y","%W","%j"),  
+                                    ywd.cols,
+                                    "%m/%d/%Y %H:%M"
+                                  );
+  
+  ndf = replaceDateStringWithDateColumns(df,"date_test",ywd);
+  ndf = sortDataFrameByNumericColumns(ndf, ywd.cols, "DESC");
+  ndf = removeDuplicatesFromDataFrame(ndf, "md5_email");
+  
+  dim(ndf); # 678
+  ndf;
+  }
+
+
+personality.clean = cleanupPersonalityDataFrame(personality.raw);
+
+### let's examine the data in total
+
+personality.Vs = removeColumnsFromDataFrame(personality.clean,c("md5_email","year","week","day"));
+
+
+X = personality.Vs;
+
+Xs = scale(X);  # this is a good habit to get into, even if the data units are similar (as is the case here).
+
+# because there are subject-level biases (e.g., a tendency for a user to answer questions higher/lower, maybe a "within-subject" scaling [row-level] followed by "within-item" scaling [col-level] may be appropriate.  Or maybe it removes some of the findings and their meaning?)
+
+Xs = as.data.frame(Xs);
+
+Xs;
+```
+
+## Check Conditions of Nultivariate Reduction
+
+"diagnostic tests"
+
+### KMO Test
+
+Kaiser-Meyer-Olkin Measure of Sampling Adequacy
+
+A statistic that indicates the proportion of variance in your varialbles that might be caused by underlying factors. 
+  High values (close to 1.0) generally indicate that a factor analysis may be useful with your data.
+  Low values (less than 0.5) gennerally indicate that the factor analysis probably won't be very useful.
+  
+  https://www.ibm.com/support/knowledgecenter/SSLVMB_23.0.0/spss/tutorials/fac_telco_kmo_01.html
+  
+```{r, kmo-test, message=FALSE}
+Xs.corr = cor(Xs);
+
+library(REdaS)
+
+Xs.KMO = KMOS(Xs);
+
+str(Xs.KMO);
+```
+
+Looks like here... there is a KMO of 0.941, which, by the previous definition, would indicate that factor analysis may be useful on this data.
+
+```{r, kmo-test-factor, message=FALSE}
+my.kmo = Xs.KMO$KMO;
+my.kmo;
+```
+
+Pulling out just the factor score.
+
+```{r, kmo-test-levels, message=FALSE}
+if(my.kmo >= 0.90)
+  {
+  print("marvelous!");
+  } else if(my.kmo >= 0.80)
+    {
+    print("meritorious!");
+    }  else if(my.kmo >= 0.70)
+        {
+        print("middling!");
+        } else if(my.kmo >= 0.60)
+            {
+            print("mediocre!");
+            }  else if(my.kmo >= 0.50)
+                {
+                print("miserable!");
+                } else { 
+                        print("mayhem!");
+                        print("Oh snap!"); 
+print("Kaiser-Meyer-Olkin (KMO) Test is a measure of how suited your data is for Factor Analysis. The test measures sampling adequacy for each variable in the model and for the complete model. The statistic is a measure of the proportion of variance among variables that might be common variance. The lower the proportion, the more suited your data is to Factor Analysis. <https://www.statisticshowto.com/kaiser-meyer-olkin/>");
+                        }
+```
+Since the KMO score is over 0.9, we get a level of "marvelous!".
+
+### Sphericity Test
+
+Bartlett's test of sphericity
+
+Tests the hypothesis that your correlation matrix is an identity matrix, which would indicate that your variables are unrealated and therefore unsuitable for structure detection.
+  Small values (less than 0.05) of the significance level indicate that a factor analysis may be useful with your data.
+  
+  https://www.ibm.com/support/knowledgecenter/SSLVMB_23.0.0/spss/tutorials/fac_telco_kmo_01.html
+
+```{r, sphericity-test, message=FALSE}
+Xs.corr = cor(Xs);
+
+library(psych);
+
+Xs.bartlett = cortest.bartlett(Xs.corr, n = nrow(Xs));
+
+str(Xs.bartlett);
+```
+
+```{r, sphericity-test-alpha, message=FALSE}
+alpha = 0.05;
+
+if(Xs.bartlett$p.value < alpha) {
+  print(paste0("Barlett's test of sphericity ... pvalue < alpha ...", Xs.bartlett$p.value, " < ", alpha, " ... \n CONCLUSION: we believe this data is likely sutable for factor analysis or PCA"));
+} else {
+    print("Oh snap!");
+  print("To put this in layman's terms, the variables in our dataset are fairly uncorrelated so a data reduction technique like PCA or factor analysis would have a hard time compressing these variables into linear combinations that are able to capture significant variance present in the data. <https://wwww.statoloty.org/bartletts-test-of-spericity/>");
+  }
+```
+
+## What "the other guys" say
+
+Some YouTubers or machine-learning people/crowds suggest that these tests are a waste of time.
+
+# From instructor's notebook:
+<b>Note:</b> “Unsupervised learning” simply means “requires no human interaction.” I can program many of these data aggregation techniques to be completely automated (including developing a programmatic strategy to ascertain the idea number of factors): ‘I want my “AI algorithm” to run, so I don’t want to perform a test and stop without executing. I have so much data, at least show them something.’ I emphasize this represents the “other guys”, not good data analysts.
+
+## How many factors
+
+There are various approaches to attempt to arrive at a conclusion of the number of factors.
+
+### Old School: Very Simple Structure (VSS)
+
+```{r, vss, message=FALSE}
+maxFactors = 8;  # Out of the 60 variables in humanversusWSU
+
+Xs.vss = vss(Xs, n = maxFactors);  # could also input Xs.corr, but would want to include n.obs = nrow(Xs)
+```
+
+```{r, vss-continued, message=FALSE}
+Xs.vss.dataframe = cbind(1:maxFactors, Xs.vss$vss.stats[,c(1:3)]);
+
+colnames(Xs.vss.dataframe) = c("factors", "d.f.", "chisq", "p.value");
+
+Xs.vss.dataframe;
+```
+
+These results say that we have so much data that we could use many different factors...
+
+The choice for "4" seems to mean the "gain of a new factor" is minimal.
+
+### Scree: Using eigenvalues from Correlation
+
+```{r, scree, message=FALSE}
+Xs.corr.eigen = eigen(Xs.corr);
+
+library(nFactors);
+
+plotuScree(Xs.corr.eigen$values);
+abline(h = 1, col="blue");
+```
+
+```{r, scree-values, message=FALSE}
+Xs.corr.eigen$values[Xs.corr.eigen$values > 1];
+```
+
+There are 11 values that are greater than 1, but 5-6 would seem reasonable based on what we see.
+
+```{r, scree-steroids, message=FALSE}
+nResults = nScree(eig = Xs.corr.eigen$values,
+                  aparallel = parallel(
+                    subject = nrow(Xs),
+                    var = ncol(Xs) )$eigen$qevpea);
+
+plotnScree(nResults, main = "Component Retention Analysis");
+```
+
+This is suggesting "6" based on Parallel Analysis and Optimal Coordinates
+
+### Eigenvalues > 1 plus parallel sampling
+
+```{r, eigen-parallel, message=FALSE}
+library(psych);
+library(GPArotation);
+
+Xs.parallel = fa.parallel(Xs, fm = "minres", fa = "fa");
+```
+
+This analysis suggests that the number of factors = 7 and the numbver of components = NA.
+
+```{r, eigen-str, message=FALSE}
+str(Xs.parallel);
+```
+
+## Analysis with chosen factors (let's say 5)
+
+```{r, chosen-factors, message=FALSE}
+round( psych::describe(Xs), digits = 5);
+```
+
+```{r, chosen-factors-mle, message=FALSE}
+Xs.factanal.5 = factanal(Xs, factors = 5, rotation = 'none');
+  # this uses "mle" method ...
+  # ## rotation ## #
+  # varimax = assumes data is independent
+  # promax = does a transform
+  # none = nothing
+# Xs.factanal.5 = factanal(covmat=Xs.corr, n.obs=nrows(Xs), factors = 5, rotation = 'varimax);
+
+#Uniqueness
+head(Xs.factanal.5$uniquenesses);
+```
+
+But what does uniqueness show?
+
+```{r, chosen-factors-uniqueness, message=FALSE}
+# Map of variables to factors (ladings)
+print(Xs.factanal.5$loadings, diits=2, cutoff=0.25, sort=FALSE);
+```
+
+```{r, chosen-factors-plot, message=FALSE}
+plot(Xs.factanal.5$loadings[,1:2], type="n");
+text(Xs.factanal.5$loadings[,1:2],labels=names(Xs), cex=0.7);  # Adds variable names
+```
+
+```{r, graphs, message=FALSE}
+print("Cool 3d graphs start here");
+```
+
+```{r, chosen-factors-3dgraphs, message=FALSE}
+library(scatterplot3d);
+library(rgl); 
+
+pchs = numeric(ncol(Xs));
+  pchs[1:30] = 16;  # self
+  pchs[31:60] = 17;  # other
+
+c.choices = c("steelblue", "#b46e46");
+colors = character(ncol(Xs));
+  colors[1:30] = c.choices[1];
+  colors[31:60] = c.choices[2];
+
+Xs.sp3d = scatterplot3d(Xs.factanal.5$loadings[,1:3],
+                        pch=pchs, color=colors,
+                        grid=TRUE, box=TRUE,
+                        type="p",
+                        angle=22
+                        );
+legend(Xs.sp3d$xyz.convert(1.5, -0.75, 1),
+       legend = c("Self", "Other"),
+       col = c.choices, 
+       text.col = c.choices,
+       pch = 16:17,
+       bty = 'n'
+       );
+```
+
+```{r, chosen-factors-radius, message=FALSE}
+# radius
+rs = numeric(ncol(Xs));
+  rs[1:30] = 0.05;  # self
+  rs[31:60] = 0.03;  # other
+
+rgl.open();  ## Open a new RGL device
+rgl.bg(color = "white");
+rgl.spheres(Xs.factanal.5$loadings[,1:3],
+            r = rs,
+            color = colors
+            );
+
+# right click on a sphere
+identify3d(Xs.factanal.5$loadings[,1:3], labels = names(Xs), n = 5);
+
+# alternatively
+plot3d(Xs.factanal.5$loadings[,1:3],
+       col = colors, box = FALSE,
+       type = "s", radius = rs
+       );
+
+# raw data
+round( psych::describe(X), digits = 5);
+```
+
+```{r, chosen-factors-head, message=FALSE}
+X.factanal.5 = factanal(X, factors=5, ratation='none');
+head(X.factanal.5$uniquenesses);
+```
+
+```{r, chosen-factors-print, message=FALSE}
+print(X.factanal.5$loadings, digits=2, cutoff=0.25, sort=FALSE);
+```
+
+```{r, chosen-factors-plot2, message=FALSE}
+plot(X.factanal.5$loadings[,1:2], type="n");
+text(X.factanal.5$loadings[,1:2], labels=names(X), cex=0.7) # add variable names
+```
+
+This plot as compared to the plot earlier, is more distributed. There are variables spread out left to right, whereas the plot earlier had a lot of the variables grouped more to the right of the plot. 
+
+# Personality
+
