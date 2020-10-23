@@ -1,0 +1,287 @@
+---
+title: 'R Notebook sandbox: Playing with Correlation'
+output:
+  html_document:
+    df_print: paged
+    toc: true
+    toc_float: true
+    toc_depth: 4
+    fig_caption: true
+    number_sections: true
+---
+
+```{r,mychunk-common-include,message=FALSE}
+library(devtools);
+my.source = 'local';
+local.path = "/Users/christophermims/_git_/WSU_STATS419_FALL2020/WEEK-06/";
+source( paste0(local.path,"functions/libraries.R"), local=T );
+```
+
+# Correlation
+
+## Review of Basic Differences Testing 
+
+### Variance
+Variance measures the spread of a variable.  Consider the following three examples:
+
+Can't perform operations on WSUHumanVerse because it takes RTools, which is only for windows systems, and I run a mac.
+
+### Iris
+
+```{r, variance-iris, message = FALSE}
+iris.df = iris;
+iris.df$Species = as.numeric(iris.df$Species);
+
+round( cor(iris.df), digits=2);
+```
+
+```{r, variance-iris-plot, message=FALSE}
+plot(iris.df);
+```
+
+```{r, variance-iris-symnum, message=FALSE}
+symnum( cor(iris.df),
+       diag = TRUE,
+       corr = TRUE,
+       cutpoints=c(0.4,0.7,0.9),
+       symbols = c(" ",".","*","**")
+    );
+```
+
+```{r, variance-iris-corrplot, message=FALSE}
+corrplot::corrplot( (cor(iris.df)) );
+```
+
+```{r, variance-iris-function-of, message=FALSE}
+Y = iris.df$Sepal.Length;
+X = iris.df$Sepal.Width;
+myData = data.frame(cbind(Y,X));
+
+plot(X,Y, xlim=range(X), ylim=range(Y) );
+  linear.model = lm(Y~X, myData );
+  linear.model.summary = summary(linear.model);
+  Y.predicted - predict(linear.model);
+par(new=TRUE);
+  myMain = paste0("R^2=",
+                  round(linear.model.summary$r.squared, digits=4),
+                    "; adj.R^2=",
+                  round(linear.model.summary$adj.r.squared, digits=4)
+                    );
+plot(X,Y.predicted, main=myMain, ylab="", xlim=range(X), ylim=range(Y), col="red");
+  abline(linear.model, col="blue");
+```
+
+```{r, variance-iris-pearson, message=FALSE}
+cor(X, Y, method="pearson");
+```
+
+```{r, variance-iris-kendall, message=FALSE}
+cor(X, Y, method="kendall");
+```
+
+```{r, variance-iris-spearman, message=FALSE}
+cor(X, Y, method="spearman");
+```
+
+```{r, variance-iris-test-pearson, message=FALSE}
+cor.test(X, Y, method="pearson");
+```
+
+```{r, variance-iris-test-kendall, message=FALSE}
+cor.test(X, Y, method="kendall");
+```
+
+```{r, variance-iris-test-spearman, message=FALSE}
+cor.test(X, Y, method="spearman");
+```
+
+```{r, variance-iris-ggplot, message=FALSE}
+library(ggplot2);
+
+ggplot() + geom_point(aes(x = X,
+                          y = Y), colour = 'red') +
+geom_line(aes(x = X,
+              y = Y.predicted), colour = 'blue') +
+  
+ggtitle('X vs Y') +
+xlab('X') +
+ylab('Y')
+
+```
+
+### Will & Denzel
+
+```{r, will-denzel-setup, message=FALSE}
+library(devtools);
+path.github = "https://raw.githubusercontent.com/MonteShaffer/humanVerseWSU/master/";
+source_url( paste0(path.github, "humanVerseWSU/R/functions-dataframe.R") );
+
+library(devtools);
+source_url("http://md5.mshaffer.com/WSU_STATS419/denzel");
+  str(denzel);
+```
+
+```{r, will-denzel-will, message=FALSE}
+source_url("http://md5.mshaffer.com/WSU_STATS419/will");
+  str(will);
+```
+
+```{r, will-denzel-func, message=FALSE}
+imdb.df = rbind(denzel$movies.50, will$movies.50);
+
+imdb.rv = removeAllColumnsBut( imdb.df,
+                               c("rank", "year", "minutes", "ratings", "metacritic", "votes", "millions") );
+
+dim(imdb.rv);
+```
+
+```{r, will-denzel-play, message=FALSE}
+imdb.rv = removeNAsFromDataFrame(imdb.rv, c("metacritic", "millions") );
+
+dim(imdb.rv);
+```
+
+```{r, will-denzel-inflation, message=FALSE}
+loadInflationData();
+
+imdb.rv = standardizeDollarsInDataFrame(imdb.rv, 2000, "millions", "year", "adjMillions2000");
+
+round( cor(imdb.rv), digits=2);
+```
+
+```{r, will-denzel-plot, message=FALSE}
+plot(imdb.rv);
+```
+
+```{r, will-denzel-symnum, message=FALSE}
+symnum( cor(imdb.rv),
+        diag = TRUE,
+        corr = TRUE,
+        cutpoints = c(0.4, 0.7, 0.9), 
+        symbols = c(" ", ".", "*", "**")
+        );
+```
+
+```{r, will-denzel-corrplot, message=FALSE}
+corrplot::corrplot( (cor(imdb.rv)) );
+```
+
+##### Rank vs. Minutes
+
+This is a negatively correlated pair. It is of medium to low intensity. 
+
+##### Millions vs. Year
+
+This is a positively correlated pair. It is of medium to low intensity.
+
+##### Ratings vs. AdjMillions2000
+
+This is a positively correlated pair. It is a very weak intensity correlation. 
+
+```{r, will-denzel-corr-pair, message=FALSE}
+Y = imdb.rv$ratings;
+X = imdb.rv$adjMillions2000;
+
+myData = data.frame(cbind(Y, X));
+
+plot(X,Y, xlim=range(X), ylim=range(Y) );
+  linear.model = lm(Y~X, myData );
+  linear.model.summary = summary(linear.model);
+  Y.predicted = predict(linear.model);
+par(new=TRUE);
+  myMain = paste0("R^2=",
+                  round(linear.model.summary$r.squared, digits=4),
+                    "; adj.R^2=", 
+                  round(linear.model.summary$adj.r.squared, digits=4)
+                    );
+plot(X, Y.predicted, main=myMain, ylab="", xlim=range(X), ylim=range(Y), col="red");
+  abline(linear.model, col="blue");
+```
+
+```{r, will-denzel-pearson, message=FALSE}
+cor(X,Y, method="pearson");
+```
+
+```{r, will-denzel-kendall, message=FALSE}
+cor(X, Y, method="kendall");
+```
+
+```{r, will-denzel-spearman, message=FALSE}
+cor(X, Y, method="spearman");
+```
+
+```{r, will-denzel-test-pearson, message=FALSE}
+cor.test(X, Y, method="pearson");
+```
+
+```{r, will-denzel-test-kendall, message=FALSE}
+cor.test(X, Y, method="kendall");
+```
+
+```{r, will-denzel-test-spearman, message=FALSE}
+cor.test(X, Y, method="spearman");
+```
+
+```{r, will-denzel-3Dplot, message=FALSE}
+library(rgl);
+# Z = imdb.rv$millions2000;
+# plot3d(x=X, y=Y, z=Z,
+#        type="p", colo="red",
+#        xlab="X", ylab="Y", zlab="Z",
+#        size=5, lwd=15, box=F
+#        );
+
+X = rnorm(100,0,1);
+Y = rnorm(100,0,1);
+z = X + Y;
+plot3d(x=X, y=Y, z=Z,
+       type="p", col="red",
+       xlab="X", ylab="Y", zlab="Z",
+       size=5, lwd=15, box=F
+       );
+
+```
+
+#### Measure
+
+```{r, measure-setup, message=FALSE}
+library(devtools);
+measure.instructor = read.csv("http://md5.mshaffer.com/WSU_STATS419/measure-04343803d489fe8ee2c5f6ab97a101e9.txt", header=TRUE, sep="|");
+
+getOne = c("hand.length", "hand.width", "hand.elbow", "elbow.armpit", "arm.reach", "foot.length", "floor.kneepit", "floor.hip", "floor.armpit");
+n.rows = dim(measure.instructor)[1];
+
+
+for(one in getOne)
+  {
+  measure.instructor[one] = NA;
+  }
+  
+for(i in 1:n.rows)
+  {  
+  measure.row = measure.instructor[i,];
+  for(one in getOne)
+    {
+    nidx = getIndexOfDataFrameColumns(measure.instructor, one);
+    
+    myleft = paste0(one,".left");
+      lidx = getIndexOfDataFrameColumns(measure.row, myleft);
+    myright = paste0(one,".right");
+      ridx = getIndexOfDataFrameColumns(measure.row, myleft);
+    
+      print(paste0(
+                  "left: ",myleft," --> ",lidx,
+                  " right: ",myright," --> ",ridx
+                  )
+            );
+      
+      row.m = mean(
+            c(as.numeric(unlist(measure.row[lidx])),
+            as.numeric(unlist(measure.row[ridx]))),
+            na.rm=TRUE);
+      
+    measure.instructor[i,nidx] =  row.m;
+    }
+  }
+```
+
