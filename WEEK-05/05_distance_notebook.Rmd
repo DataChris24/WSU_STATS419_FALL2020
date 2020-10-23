@@ -1,0 +1,275 @@
+---
+title: "05_distance_notebook"
+output:
+  html_document:
+    df_print: paged
+    toc: true
+    toc_float: true
+    toc_depth: 4
+    fig_caption: true
+    number_sections: true
+---
+
+# Get environment set-up
+
+```{r,mychunk-common-include,message=FALSE}
+library(devtools);
+my.source = 'local';
+local.path = "/Users/christophermims/_git_/WSU_STATS419_FALL2020/WEEK-05/";
+source( paste0(local.path,"functions/libraries.R"), local=T );
+```
+
+Distance - New York City
+
+```{r, my-chunk-newyork, message = FALSE}
+nyc.timesquare.latlong = c(40.7578705,-73.9854185);
+nyc.bull.wallstreet.latlong = c(40.705575,-74.0134097);
+nyc.lincoln.center.latlong = c(40.772, -73.9847);
+nyc.macys.latlong = c(40.7510547,-73.9904135);
+nyc.broadway.latlong = c(40.7593527,-73.9870634);
+nyc.stpatricks.latlong = c(40.758611, -73.976389);
+nyc.best.pizza.latlong = c(40.6250931,-73.9616134);
+nyc.best.cupcakes.latlong = c(40.7301048,-74.0026878);
+nyc.saks.latlong = c(40.7582027,-73.9772205);
+
+nyc = as.data.frame( matrix( c(  nyc.timesquare.latlong,
+                        nyc.bull.wallstreet.latlong,
+                        nyc.lincoln.center.latlong,
+                        nyc.macys.latlong,
+                        nyc.broadway.latlong,
+                        nyc.stpatricks.latlong,
+                        nyc.best.pizza.latlong,
+                        nyc.best.cupcakes.latlong,
+                        nyc.saks.latlong
+                      )
+                    ,ncol=2,byrow=TRUE) );
+  rownames(nyc) = c("Times Square", "The Bull on WallStreet", "The Lincoln Center", "Macy's", "Broadway (Les Miserable)", "St. Patrick's", "Di Fara Pizza", "Molly's Cupcakes", "Saks 5th Avenue");
+  colnames(nyc) = c("latitude","longitude");
+
+nyc;
+```
+
+
+```{r, nyc-dist, message = FALSE}
+dist(nyc, method="manhattan", diag=FALSE, upper=TRUE);
+```
+
+```{r, nyc-lat, message=FALSE}
+latitude.factor = 69;
+
+nyc$x.lat = nyc$latitude*latitude.factor;
+
+longitude.factor = 54.6;
+
+nyc$y.lat = nyc$longitude*longitude.factor;
+
+nyc;
+```
+
+```{r, lat-dist-manhattan, message=FALSE}
+dist(nyc[,3:4], method="manhattan", diag=FALSE, upper=TRUE);
+```
+
+```{r, nyc-dist-euclidean, message=FALSE}
+dist(nyc[,3:4], method="euclidean", diag=FALSE, upper=TRUE);
+```
+
+
+```{r, nyc-dist-maximum, message=FALSE}
+dist(nyc[,3:4], method="maximum", diag = FALSE, upper = TRUE);
+```
+
+```{r, nyc-dist-minkowski, message=FALSE}
+dist(nyc[,3:4], method="minkowski", diag = FALSE, upper = TRUE);
+```
+
+```{r, nyc-metric-euclidean, message=FALSE}
+distance(nyc[,3:4], method="euclidean", diag=FALSE, upper=TRUE);
+```
+
+```{r, nyc-metric-manhattan, message=FALSE}
+distance(nyc[,3:4], method="manhattan", diag=FALSE, upper=TRUE);
+```
+
+
+```{r, nyc-metric-canberra, message=FALSE}
+distance(nyc[,3:4], method="canberra", diag = FALSE, upper = TRUE);
+```
+
+```{r, nyc-geosphere-haversine, message=FALSE}
+distm( nyc[,2:1], fun=distHaversine);
+```
+
+```{r, nyc-geosphere-Meeus, message=FALSE}
+distm( nyc[,2:1], fun=distMeeus);
+```
+
+```{r, nyc-geosphere-Geo, message=FALSE}
+distm( nyc[,2:1], fu=distGeo);
+```
+
+```{r, nyc-measurements, message=FALSE}
+conv_unit(2.54, "cm", "inch");
+```
+
+```{r, nyc-measurements-Haversine, message=FALSE}
+conv_unit( distm( nyc[,2:1], fun=distHaversine), "m", "mi");
+```
+
+```{r, nyc-measurements-Meeus, message=FALSE}
+conv_unit( distm( nyc[,2:1], fun=distMeeus), "m", "mi");
+```
+
+```{r, nyc-measurements-Geo, message=FALSE}
+conv_unit( distm( nyc[,2:1], fun=distGeo), "m", "mi");
+```
+
+# Question 01: When would the "angle of rotation" for NYC matter to compute the Manhattan Distance?
+
+The angle of rotation matters when you use different libraries. In some libraries you are going to use latitude then longitude, when in others you will use longitude, then latitude.
+
+# Question 02: How does DiFara Pizza complicate things? How would you really have to compute distance in this scenario?
+
+Since Di Fara Pizza is out of Manhattan and you have to cross a bridge, calculating Manhattan distance would be inacurate. The length of the bridge would have to be taken into account. Therefore, you would need to use a different distance formula, or add on to the Manhattan distance from your starting point to the bridge the length of the bridge, then the distance from the bridge to Di Fara Pizza.
+
+# Question 03: Which distance metric seems to be most conservative (Manhattan, Euclidean, Haversine)?
+
+The Manhattan distance is the most convservative, because it calculates the distance as if you had to walk the city blocks to the destination. With Euclidean distance we are meausring the distance as if there is no obstacles in the way, which would give us the least conservative distance. And then with Haversine, we are calculating as if a crow would fly with the curvature of the Earth. This would give us a shorter distance than Manhattan but longer distance than Euclidean.
+
+Question 4: Which Spherical Ellipsoid Distance is most accurate (Haversine, Meeus, or Geo): How can you verify that?
+
+I would say that Geographical distance is the most accurate. As seen above it has the shortest distance between points. Because this formula/function is designed for spherical ellipsoids, it most accurately identifies distances. Haversine is also good, but it is based more on the changes in latitude and longitude and would need very close definitions to be more accurate. In order to verify which one is the most accurate, you would need to find a place on Earth that had very little change in elevation between two points. Gather their lat and longitude, calulate the distance, then physically measure the distance. 
+
+Section 4: Store Locator
+
+```{r, store-locator-setup, message=FALSE}
+db.host   = Sys.getenv("HOST_WSU_SANDBOX");
+db.name   = Sys.getenv("DATABASE_WSU_SANDBOX");
+db.user   = Sys.getenv("USER_WSU_SANDBOX");
+db.passwd = Sys.getenv("PASSWORD_WSU_SANDBOX");
+
+library(RMySQL)
+
+mysql.connection = dbConnect(RMySQL::MySQL(),
+                            user = db.user,
+                            password = db.passwd,
+                            dbname = db.name ,
+                            host = db.host);
+
+
+db.table.zipcodes = "zipcodes";
+
+zipcode = '99163';  # CANADA allows strings for zipcodes, I removed, so only U.S.
+
+mysql.query.template = "SELECT * FROM {tablename} WHERE zipcode = '{zipcode}';";
+mysql.query = gsub("{tablename}",db.table.zipcodes, mysql.query.template, fixed=TRUE);
+mysql.query = gsub("{zipcode}",zipcode, mysql.query, fixed=TRUE);
+
+mysql.query;
+```
+
+String Distances
+
+```{r, string-dist-setup, message=FALSE}
+install.packages("RecordLinkage", dependencies = TRUE);
+
+library(RecordLinkage);
+```
+
+```{r, string-dist-play1, message=FALSE}
+w1.singular = "TRIANGLE";
+sort( unlist(strsplit(w1.singular,"", fixed=TRUE)) );
+```
+
+```{r, string-dist-play2, message=FALSE}
+w1 = "TRIANGLES";
+sort( unlist(strsplit(w1,"", fixed=TRUE)) );
+```
+
+```{r, string-dist-play3, message=FALSE}
+w2 = "GNARLIEST";
+sort( unlist(strsplit(w2,"", fixed=TRUE)) );
+```
+
+```{r, string-dist-play4, message=FALSE}
+w3 = "RESLATING";
+sort( unlist(strsplit(w3,"", fixed=TRUE)) );
+```
+
+```{r, string-dist-play5, message=FALSE}
+jarowinkler(w1.singular,w1);
+```
+
+```{r, string-dist-play6, message=FALSE}
+jarowinkler(w1.singular, w2);
+```
+
+```{r, string-dist-play7, message=FALSE}
+jarowinkler(w1.singular, w3);
+```
+
+```{r, string-dist-play8, message=FALSE}
+jarowinkler(w1, w2);
+```
+
+```{r, string-dist-play9, message=FALSE}
+jarowinkler(w1, w3);
+```
+
+```{r, string-dist-play10, message=FALSE}
+levenshteinSim(w1.singular, w1);
+```
+
+```{r, string-dist-play11, message=FALSE}
+levenshteinSim(w1.singular, w2);
+```
+
+
+```{r, string-dist-play12, message=FALSE}
+levenshteinSim(w1.singular, w3);
+```
+
+
+```{r, string-dist-play13, message=FALSE}
+levenshteinSim(w1, w2);
+```
+
+
+```{r, string-dist-play14, message=FALSE}
+levenshteinSim(w1, w3);
+```
+
+
+```{r, string-dist-play15, message=FALSE}
+levenshteinDist(w1.singular, w1);
+```
+
+```{r, string-dist-play16, message=FALSE}
+levenshteinDist(w1.singular, w2);
+```
+
+```{r, string-dist-play17, message=FALSE}
+levenshteinDist(w1.singular, w3);
+```
+
+```{r, string-dist-play18, message=FALSE}
+levenshteinDist(w1, w2);
+```
+
+```{r, string-dist-play19, message=FALSE}
+levenshteinDist(w1, w3);
+```
+
+Question: What do you notice about w1, w2, w3 when we sort the characters that compose each string?
+
+They are all the same!
+
+What is the term for this type of equality?
+
+Anagram
+
+Is there a string function that would find such examples?
+
+I found an anagram function in the package 'wfindr'. This package looks like it is used to find words for crossword puzzles, the game scrabble, as well as other things. 
+
+You could write a very simple function as well that would take two words into the function. separate and sort them like we did here, then see if the distance is 0. 
